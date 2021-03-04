@@ -1,0 +1,267 @@
+@font-face {
+    font-family: 'varela_roundregular';
+    src: url('varelaround-regular-webfont.woff2') format('woff2'),
+        url('varelaround-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    box-sizing: border-box;
+    font-family: 'varela_roundregular';
+    margin: 0;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+
+    overflow: hidden;
+}
+
+header {
+    width: 100%;
+    height: 5.5vh;
+    background-color: crimson;
+    color: whitesmoke;
+}
+
+main {
+    width: 100%;
+    height: 90%;
+    position: relative;
+}
+
+footer {
+    width: 100%;
+    height: 5%;
+    text-align: center;
+}
+
+h1 {
+    font-size: 4vh;
+    text-align: center;
+    height: 100%;
+}
+
+.upper_side {
+    width: 100%;
+    height: 30%;
+    position: relative;
+}
+
+.zoom_mode_wrapper,
+.stick_mode_wrapper,
+.save_screenshot_wrapper {
+    position: relative;
+    left: 2vh;
+    margin-top: 1vh;
+}
+
+button.zoom_mode,
+button.stick_mode,
+button.save_screenshot {
+    border: 2px solid black;
+    cursor: pointer;
+    outline: none;
+}
+
+button.selected {
+    border-color: red;
+}
+.chord_wrapper {
+    position: absolute;
+
+    width: 40vw;
+    height: 70%;
+    top: 10%;
+    left: 30vw;
+}
+
+.chord_wrapper > * {
+}
+
+.upper {
+    height: 20%;
+    font-size: 2.5vh;
+    width: 100%;
+    text-align: center;
+}
+
+.lower {
+    height: 80%;
+    width: 100%;
+    border: none;
+}
+
+.lower:focus {
+    border: 1px solid black;
+}
+
+.lower input {
+    height: 100%;
+    width: 100%;
+    font-size: 10vh;
+    border: none;
+    outline: cadetblue 2px solid;
+    text-align: center;
+}
+
+.lower input:focus {
+    outline: 2px solid aqua;
+}
+
+.lower input:focus .lower {
+    border: 1px solid black;
+}
+
+button.reset {
+    position: absolute;
+    width: 15vw;
+    height: 5vw;
+    right: 1vw;
+    top: 1vh;
+    font-size: 2vw;
+    cursor: pointer;
+    border: medium solid;
+    background-color: hsl(20, 70%, 50%);
+    border-top-color: hsl(20, 70%, 70%);
+    border-left-color: hsl(20, 70%, 70%);
+    border-right-color: hsl(20, 70%, 30%);
+    border-bottom-color: hsl(20, 70%, 30%);
+    text-align: center;
+    padding: 0%;
+    color: whitesmoke;
+    outline: none;
+    z-index: 1;
+}
+
+button.reset:active {
+    border-bottom-color: hsl(20, 70%, 70%);
+    border-right-color: hsl(20, 70%, 70%);
+    border-left-color: hsl(20, 70%, 30%);
+    border-top-color: hsl(20, 70%, 30%);
+}
+
+.lower_side {
+    position: relative;
+    height: 70%;
+    overflow: scroll;
+}
+
+.neck_canvas {
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.neck {
+    position: relative;
+}
+
+.fretboard_wrapper {
+    position: relative;
+    border-top: burlywood 2px solid;
+    border-bottom: burlywood 2px solid;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(255, 197, 149);
+}
+
+.row {
+    position: relative;
+    display: flex;
+    height: 16.6666%;
+    flex-direction: row-reverse;
+}
+
+input[type='checkbox'] {
+    opacity: 0;
+    /* position: absolute; */
+    display: none;
+}
+
+.block {
+    position: relative;
+    height: 100%;
+    border-right: 1px solid black;
+    z-index: 2;
+}
+
+.string {
+    position: relative;
+    width: 100%;
+    height: 16.6666%;
+    top: calc(-100% + 16.6666% / 2 - 1.5px);
+    border-top: 3px solid black;
+}
+
+.indicator {
+    position: relative;
+    top: calc(50% - 10px);
+    border-radius: 50%;
+    background-color: red;
+    z-index: 99;
+    visibility: hidden;
+}
+
+label:hover .indicator {
+    visibility: visible;
+}
+
+input:checked + label .indicator {
+    visibility: visible;
+}
+
+.fret_number {
+    position: absolute;
+    top: -100%;
+    left: calc(50% - 5px);
+}
+.dot {
+    position: absolute;
+    background-color: black;
+}
+
+.block.row_3 .dot {
+    top: -20%;
+    background-color: black;
+    border-radius: 0;
+}
+
+/* .hidden {
+    display: none;
+} */
+.note_name {
+    position: absolute;
+    height: 10px;
+    top: -10px;
+    z-index: 3;
+}
+
+.emerge {
+    animation: emerge 1s linear;
+}
+
+@keyframes emerge {
+    from {
+        transform: translate(0, 0);
+    }
+
+    to {
+        transform: translate(0, -50px);
+    }
+}
+
+.guitar_head {
+    position: relative;
+    background-image: url(./src/guitar_head.svg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    width: 100%;
+    left: -4px;
+}
