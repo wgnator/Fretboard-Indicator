@@ -6,8 +6,12 @@ const zoomLevels = {
     '1.5x': { width: 1890, height: 240, indicatorDiameter: 30 },
 };
 let currentZoom = '1x';
-let currentStickMode = true;
+let noteMode = 'chord';
 const neck = document.querySelector('.neck');
+let selectedNotes = [];
+let savedSequence = [];
+let sequenceName = '';
+let chordInputFontSize = 10;
 
 function init() {
     let fretboardHTML = '';
@@ -33,8 +37,8 @@ function init() {
             //setup for open string position
             if (j == 0) {
                 fretboardHTML += `
-                <input type='checkbox' id="row_${i}_col_${j}">\n
-                <label for="row_${i}_col_${j}" class='block row_${i} col_${j}' row="${i}" col="${j}" style='width: 8px; background-color: black' onclick='noteClicked(this)'>\n
+                <input type='checkbox' id="row_${i}_col_${j}" row="${i}" col="${j}">\n
+                <label for="row_${i}_col_${j}" class='block' row="${i}" col="${j}" style='width: 8px; background-color: black'>\n
                 <div class='indicator' style='left: ${
                     indicatorDiameter / 2
                 }px; width: ${indicatorDiameter}px; height: ${indicatorDiameter}px;'>\n
@@ -47,13 +51,11 @@ function init() {
                 //create neck number & inlays
                 if (i == 0 && dotPositions.includes(j)) {
                     dotHTML = `<div class='fret_number'>${j}</div>\n<div class='dot'></div>\n`;
-                    // } else if (i == 3 && dot.includes(j)) {
-                    //     ;
                 } else dotHTML = '';
                 //main blocks
                 fretboardHTML += `
-                <input type='checkbox' id="row_${i}_col_${j}" >\n
-                <label for="row_${i}_col_${j}" class='block row_${i} col_${j}' row="${i}" col="${j}" style='width: ${width}px' onclick='noteClicked(this)'>\n
+                <input type='checkbox' id="row_${i}_col_${j}" row="${i}" col="${j}" >\n
+                <label for="row_${i}_col_${j}" class='block' row="${i}" col="${j}" style='width: ${width}px'>\n
                 ${dotHTML}
                     <div class='indicator' style='left: ${
                         width / 2 - 10
@@ -67,12 +69,24 @@ function init() {
 
         fretboardHTML += '</div>\n';
         //create strings
-        stringHTML += `<div class='string no_${6 - i}'></div>\n`;
+        const stringThickness = parseFloat(currentZoom)*3
+        stringHTML += `<div class='string no_${6 - i}' style='border-width:${stringThickness}px'></div>\n`;
     }
     fretboardWrapper.innerHTML += fretboardHTML;
     neck.innerHTML += stringHTML;
-    const guitarHead = document.querySelector('.guitar_head');
+    document.querySelectorAll('.block').forEach(dom => dom.onclick = (e) => {
+        if(e.target.tagName != 'LABEL') {
+            noteClicked(e.target.parentNode);
+            console.log(e.target.parentNode);
+        } else {
+            noteClicked(e.target);
+            console.log(e.target);
+        }
+    })
+
+
     //set size of head
+    const guitarHead = document.querySelector('.guitar_head');
     guitarHead.style.height = zoomSetting.height * 2.3625 + 'px';
     guitarHead.style.width = `${zoomSetting.height * 2.3625 * 2.2068}px`;
     //set styles of dot inlay
@@ -86,57 +100,200 @@ function init() {
     document.querySelectorAll('.fret_number').forEach((e) => {
         e.style.fontSize = parseFloat(currentZoom) + 'rem';
     });
-    //initial x-scroll position to the most right
+    //initial x-scroll position to the most right of fretboard plus 50px(to show nut to click open string)
     document.querySelector('.lower_side').scrollLeft =
         neckCanvas.offsetWidth -
         window.innerWidth -
         guitarHead.offsetWidth +
-        15;
+        50;
 }
 
 init();
 
-//reset button
-let allInputs = document.querySelectorAll('input');
+//sequence name input font size adjustment
+const sequenceNameInput = document.querySelector('input#sequence_name');
+sequenceNameInput.onkeydown = () => { inputTextResize(sequenceNameInput)}
+function inputTextResize(dom) {
+    console.log(dom.scrollWidth, dom.clientWidth);
+    while(dom.scrollWidth > dom.clientWidth){
+        chordInputFontSize--;
+            dom.style.fontSize = chordInputFontSize + 'vh';
+            console.log(dom.scrollWidth, dom.clientWidth);
+    } 
+}
+//reset notes button setup
 const resetButton = document.querySelector('.reset');
-
 resetButton.onclick = () => {
-    allInputs.forEach((elem) => {
-        if (elem.type == 'checkbox') elem.checked = false;
-    });
+    clearFretboard();
+    selectedNotes = [];
 };
 
-function noteClicked(dom) {
+function clearFretboard() {
+    const allInputs = document.querySelectorAll('input[type=checkbox]');
+    allInputs.forEach((e) => {
+        e.checked = false;
+        const indic = e.nextElementSibling.querySelector('.indicator');
+        indic.innerText = '';
+        indic.classList.remove('transparent');
+    });
+}
+
+//save sequence button setup
+const saveButton = document.querySelector('button.save');
+saveButton.onclick = () => {
+    if(noteMode == 'chord') {
+        //for chord, examine all inputs to filter selected ones, and add them to selectedNotes
+        const allInputs = document.querySelectorAll('input[type=checkbox]:checked');
+        allInputs.forEach(e => {
+            const { row, col, noteName } = selectedNoteParser(e);
+            selectedNotes.push([row, col, noteName]);
+        })
+    }
+    sequenceName = sequenceNameInput.value;
+    if(!selectedNotes[0]) {
+        window.alert('no notes selected');
+        return;
+    }
+    saveSequence();
+    clearFretboard();
+    selectedNotes = [];
+    sequenceNameInput.value = '';
+};
+
+//delete all sequences button
+const deleteButton = document.querySelector('button.delete');
+deleteButton.onclick = () => {
+    document.querySelector('.saved_sequences').innerHTML = '';
+    savedSequence = [];
+};
+
+
+function noteClicked(clickedLabelTag) {
+    const { row, col, noteName } = selectedNoteParser(clickedLabelTag);
+    linkedInputTag = clickedLabelTag.parentNode.querySelector(`input[row='${row}'][col='${col}']`);
+    noteNameAnimation(noteName, clickedLabelTag);
+    if (noteMode == 'chord') {
+        //if chord mode, prevent two or more notes on same string, remove it from recorded notes
+        clickedLabelTag.parentNode.querySelectorAll('input').forEach((e) => {
+            if (e != linkedInputTag && e.checked) {
+                e.checked = false;
+            }
+        });
+        //for chord mode, collect selected notes later when save button is hit
+    }
+    if (noteMode == 'line') {
+        //if line mode, save selected note right away
+        selectedNotes.push([row, col, noteName]);
+        //if line mode, execute line sequence handler
+        noteNumberer(clickedLabelTag, row, col, noteName);
+        //allow duplicate of notes (make it rechecked)
+        setTimeout(()=> {
+            if(!linkedInputTag.checked) linkedInputTag.checked = true;
+        },0);
+    }
+}
+
+function selectedNoteParser(dom) {
     const row = dom.getAttribute('row');
     const col = dom.getAttribute('col');
-    //create note name animation
+    const noteName = matrix[row][col];
+    return { row, col, noteName };
+}
+
+function noteNameAnimation(noteName, clickedLabelTag) {
     const div = document.createElement('div');
-    div.innerText = matrix[row][col];
+    div.innerText = noteName;
     div.classList.add('note_name', 'emerge');
-    const indicatorPos = parseInt(dom.lastElementChild.style.left);
+    const indicatorPos = parseInt(clickedLabelTag.lastElementChild.style.left);
     div.style = 'left:' + indicatorPos + 'px';
-    dom.append(div);
+    clickedLabelTag.append(div);
     div.onanimationend = () => {
         div.remove();
     };
-
-    //prevent two or more notes on same string
-    dom.parentNode.querySelectorAll('input').forEach((e) => {
-        if (e != dom && e.checked) e.checked = false;
-    });
-
-    //if stick mode is off, input tag is never checked
-    setTimeout(() => {
-        if (!currentStickMode) {
-            dom.parentNode.querySelector(
-                `input#row_${row}_col_${col}`
-            ).checked = false;
-            console.log(
-                dom.parentNode.querySelector(`input#row_${row}_col_${col}`)
-            );
-        }
-    }, 0);
 }
+
+function noteNumberer(dom, row, col, noteName) {
+    const noteNum = selectedNotes.length;
+    // past indicators show sequence number and appear transparent
+    dom.querySelector('.indicator').classList.add('transparent');
+    dom.querySelector('.indicator').innerText = noteNum;
+}
+
+function saveSequence() {
+    savedSequence.push({
+        type: noteMode,
+        sequence: selectedNotes,
+        sequenceName: sequenceName ?? null
+    });
+    const sequenceNum = savedSequence.length;
+    //create new div for saved sequence
+    const seq = document.createElement('div');
+    seq.innerText = `sequence ${sequenceNum}: ${sequenceName ? sequenceName : noteMode == 'line' ? 'line' :  'chord'}`;
+    seq.classList.add('sequence', 'tile');
+    seq.setAttribute('sequence_no', sequenceNum);
+    document.querySelector('.saved_sequences').append(seq);
+    seq.onclick = () => {
+        replaySequence(sequenceNum);
+    };
+}
+
+function replaySequence(sequenceNum) {
+    console.log(
+        `sequence ${sequenceNum}: ${savedSequence[sequenceNum - 1].sequence.map(
+            (e) => e[2]
+        )}`,
+        `type: ${savedSequence[sequenceNum - 1].type}`
+    );
+    const veil = document.querySelector('.veil');
+    clearFretboard();
+    selectedNotes = [];
+    if(noteMode == 'chord') displayChord();
+    else displayLine();
+    
+
+    function displayChord() {
+        veil.classList.add('show')
+        const sequence = savedSequence[sequenceNum - 1].sequence;
+        for(i=0; i<sequence.length; i++){
+            document.querySelector(`input#row_${sequence[i][0]}_col_${sequence[i][1]}`).click();
+        }
+        sequenceNameInput.value = savedSequence[sequenceNum - 1].sequenceName;
+        setTimeout(clickToContinue, 0);
+    }
+
+    function displayLine() {
+        veil.classList.add('show')
+        const playbackInterval = 500;
+        const sequence = savedSequence[sequenceNum - 1].sequence;
+        let i = 0;
+        sequenceNameInput.value = savedSequence[sequenceNum - 1].sequenceName;
+        const intervalID = setInterval(()=>{
+            if(i == sequence.length) {
+                // selectedNotes = [];
+                // clearFretboard();
+                clearInterval(intervalID);
+                clickToContinue();
+                // sequenceNameInput.value = '';
+                return;
+            }
+            document.querySelector(`label[row='${sequence[i][0]}'][col='${sequence[i][1]}']`).click();
+            i++;
+        }, playbackInterval);
+    }
+
+    function clickToContinue(){
+        veil.innerText = 'click anywhere to continue';
+        window.onclick = () =>{
+            selectedNotes = [];
+            clearFretboard();
+            sequenceNameInput.value = '';
+            window.onclick = null;
+            veil.innerText = '';
+            veil.classList.remove('show')
+            }
+    }
+}
+
 
 //zoom levels
 function toggle(dom) {
@@ -144,23 +301,20 @@ function toggle(dom) {
         e.classList.remove('selected');
     });
     dom.classList.add('selected');
-
-    if (dom.classList.contains('stick_mode')) {
-        currentStickMode = Boolean(dom.getAttribute('stick'));
-        if (!currentStickMode)
-            document.querySelectorAll('input').forEach((e) => {
-                e.checked = false;
-            });
+    //note mode toggle
+    if (dom.classList.contains('chord_line_mode')) {
+        noteMode = dom.getAttribute('mode');
+        clearFretboard();
     }
-
+    //zoom mode toggle
     if (dom.classList.contains('zoom_mode')) {
         currentZoom = dom.innerText;
         init();
     }
 }
 
-//download screenshot
 
+//save & download screenshot
 function saveScreenshot() {
     const link = document.createElement('a');
     link.download = 'screenshot.png';
