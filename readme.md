@@ -7,4 +7,6 @@ This web application is made for guitar teachers to show student which strings a
 
 Current version(1.0) has features of zoom, note stick/no stick toggle, manually input chord name, save screenshot.
 
-Audio and and chord library features are to be added for the next version.
+Audio files(for sound when cliked) are removed in this version for copyright reasons.
+
+Chord library features are to be added for the next version.
