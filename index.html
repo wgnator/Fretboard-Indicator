@@ -1,72 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fretboard Indicator</title>
     <script src="https://kit.fontawesome.com/1bc57ed97d.js" crossorigin="anonymous"></script>
-    <script src="./src/matrix.js"></script>
-    <script src="./src/main.js" defer></script>
-    <script src="./src/html2canvas.min.js"></script>
-    <link rel="icon" href="./src/favicon.ico">
+    <script src="./matrix.js" defer></script>
+    <script src="./notes.js" defer></script>
+    <script src="./main.js" defer></script>
+    <script src="./html2canvas.min.js"></script>
+    <link rel="icon" href="./favicon.ico" />
     <link rel="stylesheet" href="style.css" />
     <style></style>
-</head>
+  </head>
 
-<body>
+  <body>
     <header>
-        <h1>Fretboard Indicator</h1>
+      <h1>Fretboard Indicator</h1>
     </header>
     <main>
-        <div class="upper_side">
-            <div class="zoom_mode_wrapper">
-                <button class="zoom_mode 0_5x" onclick="toggle(this)">
-                    0.5x
-                </button>
-                <button class="zoom_mode 0_75x" onclick="toggle(this)">
-                    0.75x
-                </button>
-                <button class="zoom_mode 1x selected" onclick="toggle(this)">
-                    1x
-                </button>
-                <button class="zoom_mode 1_25x" onclick="toggle(this)">
-                    1.25x
-                </button>
-                <button class="zoom_mode 1_5x" onclick="toggle(this)">
-                    1.5x
-                </button>
-            </div>
-            <div class="stick_mode_wrapper">
-                <button class="stick_mode selected" onclick="toggle(this)" stick=true>stick</button>
-                <button class="stick_mode" onclick="toggle(this)" stick=>no stick</button>
-            </div>
-            <div class="save_screenshot_wrapper">
-                <button class="save_screenshot" onclick="saveScreenshot()">save screenshot</button>
-            </div>
-            <div class="chord_wrapper">
-                <div class="upper">Name this chord:</div>
-                <div class="lower">
-                    <form onsubmit="document.querySelector('#chord_name').blur(); return false;">
-                        <input type="text" name="chord_name" id="chord_name" autocomplete="off" />
-                    </form>
-                </div>
-            </div>
-            <button class="reset">
-                <i class="fas fa-eraser"></i>
-                Reset
-            </button>
+      <div class="upper_side">
+        <div class="zoom_mode_wrapper">
+          <button class="zoom_mode 0_5x" onclick="toggle(this)">0.5x</button>
+          <button class="zoom_mode 0_75x" onclick="toggle(this)">0.75x</button>
+          <button class="zoom_mode 1x selected" onclick="toggle(this)">1x</button>
+          <button class="zoom_mode 1_25x" onclick="toggle(this)">1.25x</button>
+          <button class="zoom_mode 1_5x" onclick="toggle(this)">1.5x</button>
         </div>
-        <div class="lower_side">
-            <div class="neck_canvas">
-                <div class="neck"></div>
-                <div class="guitar_head"></div>
-            </div>
+        <div class="chord_line_mode_wrapper">
+          <button class="chord_line_mode selected" mode="chord" onclick="toggle(this)">
+            chord mode
+          </button>
+          <button class="chord_line_mode" mode="line" onclick="toggle(this)">line mode</button>
+        </div>
+        <div class="save_screenshot_wrapper">
+          <button class="save_screenshot" onclick="saveScreenshot()">save screenshot</button>
+        </div>
+        <div class="chord_wrapper">
+          <div class="upper">Name this:</div>
+          <div class="lower">
+            <form onsubmit="document.querySelector('#sequence_name').blur(); return false;">
+              <input type="text" id="sequence_name" autocomplete="off" />
+            </form>
+          </div>
+        </div>
+        <button class="reset tile right">
+          <i class="fas fa-eraser"></i>
+          Reset Notes
+        </button>
+        <div class="sequence_wrapper right">
+          <div class="saved_sequences_upper">
+            <span>saved sequences:</span>
+          </div>
 
+          <div class="saved_sequences"></div>
         </div>
+        <button class="save tile right">Save Sequence</button>
+        <button class="delete tile right">Delete All</button>
+      </div>
+      <div class="lower_side">
+        <div class="neck_canvas">
+          <div class="neck"></div>
+          <div class="guitar_head"></div>
+        </div>
+      </div>
     </main>
-    <footer>© 2021 Woongi Han. for bug report & suggestions, please contact: chryblsm@gmail.com</footer>
-</body>
-
+    <div class="veil"></div>
+    <footer>
+      © 2021 Woongi Han. for bug report & suggestions, please send to: wgnator@gmail.com
+    </footer>
+  </body>
 </html>
